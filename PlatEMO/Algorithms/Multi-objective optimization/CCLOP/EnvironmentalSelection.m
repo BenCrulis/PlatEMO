@@ -58,6 +58,8 @@ function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,Id
     Corner = FindCornerSolutions(F);
     %Corner = [];
     
+    Keep = Closest_selection(Keep, N, D, Fitness);
+    
     while sum(Keep) > N
         Remain   = find(Keep);
         [B, I]   = min(D(Remain,Remain), [],2);
