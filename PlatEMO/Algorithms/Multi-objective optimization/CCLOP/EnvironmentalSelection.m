@@ -58,38 +58,14 @@ function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,Id
     Corner = FindCornerSolutions(F);
     %Corner = [];
     
-    Keep = Closest_selection(Keep, N, D, Fitness);
+    % create variables for the subproblem
+    subsetD = D(Keep, Keep);
+    subsetFitness = Fitness(Keep);
+    KeepSubset = logical(ones(1, size(subsetD, 1)));
     
-    while sum(Keep) > N
-        Remain   = find(Keep);
-        [B, I]   = min(D(Remain,Remain), [],2);
-        [~,Second] = min(B(:,1));
-        First = Remain(I(Second,1));
-        Second = Remain(Second);
-
-        ToDel = First;
-
-        FirstIsCorner = ismember(First, Corner);
-        SecondIsCorner = ismember(Second, Corner);
-        
-        consFirst = Cons(First);
-        consSecond = Cons(Second);
-        
-        if ((consFirst > 0) || (consSecond > 0)) && (consFirst ~= consSecond)
-            if consFirst < consSecond
-                ToDel = Second;
-            else
-                ToDel = First;
-            end    
-        elseif FirstIsCorner && ~SecondIsCorner
-            ToDel = Second;
-        elseif ~FirstIsCorner && SecondIsCorner
-            ToDel = First;
-        elseif Fitness(First) < Fitness(Second)
-            ToDel = Second;
-        end
-        Keep(ToDel) = false;
-    end
+    KeepSubset = Closest_selection(KeepSubset, N, subsetD, subsetFitness);
+    
+    Keep(Keep == true) = KeepSubset;
         
     %% Population for next generation
     Population = Population(Keep);
