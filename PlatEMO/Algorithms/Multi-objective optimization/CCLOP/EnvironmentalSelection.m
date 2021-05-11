@@ -1,12 +1,12 @@
-function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,IdealPoint)
+function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Population,N,IdealPoint)
 % The environmental selection of C-CLOP
 
 
 % This function is written by Ben Crulis
 
     %% let's round the objective values
-    %objs = round(Population.objs, 4);
-    objs = Population.objs;
+    objs = round(Population.objs, 6);
+    %objs = Population.objs;
     
     %% Non-dominated sorting
     [FrontNo, Last] = NDSort(objs,Population.cons,N);
@@ -24,6 +24,7 @@ function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,Id
     
     Nadir = max(F1, [], 1);
     %Nadir = mean(F1, 1); % using max is unstable for some problems such as IDTLZ1
+    %Nadir = median(F1, 1);
     
     Normalization = Nadir - IdealPoint;
     Normalization(Normalization == 0) = 1;
@@ -39,7 +40,9 @@ function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,Id
     
     %F = WS(F + 1e-7); % transform the vectors using MOEA/D-AWA WS transformation
     
-    D = pdist2(F,F,'cosine');
+    Fu = F - 1e-6;
+    
+    D = pdist2(Fu,Fu,'cosine');
     
     D(isnan(D)) = 0;
     
@@ -57,6 +60,8 @@ function [Population,FrontNo,Fitness,D] = EnvironmentalSelection(Population,N,Id
     
     Corner = FindCornerSolutions(F);
     %Corner = [];
+    subsetD(Corner) = 1;
+    %Fitness(Corner) = -inf;
     
     % create variables for the subproblem
     subsetD = D(Keep, Keep);
