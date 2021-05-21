@@ -1,8 +1,7 @@
 function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Population,N,IdealPoint)
-% The environmental selection of C-CLOP
+    % The environmental selection of C-CLOP
 
-
-% This function is written by Ben Crulis
+    % This function is written by Ben Crulis
 
     %% let's round the objective values
     objs = round(Population.objs, 6);
@@ -10,10 +9,10 @@ function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Populatio
     
     %% Non-dominated sorting
     [FrontNo, Last] = NDSort(objs,Population.cons,N);
-    %[FrontNo, Last] = NDSort(objs, N);
+
     Front = FrontNo == 1;
 
-    [nInd, ~]    = size(objs);
+    [nInd, ~] = size(objs);
     
     Infeas = any(Population.cons > 0, 2);
     ConsF = (Population.cons > 0) .* Population.cons;
@@ -23,8 +22,6 @@ function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Populatio
     F1 = objs(Front,:);
     
     Nadir = max(F1, [], 1);
-    %Nadir = mean(F1, 1); % using max is unstable for some problems such as IDTLZ1
-    %Nadir = median(F1, 1);
     
     Normalization = Nadir - IdealPoint;
     Normalization(Normalization == 0) = 1;
@@ -34,12 +31,9 @@ function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Populatio
     %% compute the fitness as the distance to the ideal point
 
     Fitness = squeeze(sum(F.^2,2));
-    %Fitness = sum(F, 2);
     
     %% compute the distance between solutions
-    
-    %F = WS(F + 1e-7); % transform the vectors using MOEA/D-AWA WS transformation
-    
+        
     Fu = F - 1e-6;
     
     D = pdist2(Fu,Fu,'cosine');
@@ -52,18 +46,7 @@ function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Populatio
     Keep = false(1,nInd);
     Keep(FrontNo <= Last) = true;
     
-    %Keep(Infeas) = false;
-    
-    %if sum(Keep) < N
-        %Keep(~Infeas) = true;
-    %end
-    
-    Corner = FindCornerSolutions(F);
-    %Corner = [];
-    subsetD(Corner) = 1;
-    %Fitness(Corner) = -inf;
-    
-    % create variables for the subproblem
+    % create variables for the subpopulation
     subsetD = D(Keep, Keep);
     subsetFitness = Fitness(Keep);
     KeepSubset = logical(ones(1, size(subsetD, 1)));
@@ -75,7 +58,6 @@ function [Population,FrontNo,Fitness,D,Nadir] = EnvironmentalSelection(Populatio
     %% Population for next generation
     Population = Population(Keep);
     FrontNo    = FrontNo(Keep);
-    %Fitness = sum(mink(D, size(objs,2), 2), 2); % use angle fitness
     Fitness    = Fitness(Keep);
     D = D(Keep,Keep);
 end
